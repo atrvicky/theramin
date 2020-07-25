@@ -40,21 +40,10 @@ void setup()
 void loop()
 {
     long secs = pingSensor();
-    CC_MAPPED_VALUE = ceil(map(secs, US_MIN, US_MAX, CC_OFF, CC_SUPER));
-    // change the values based on user's input
-    // int diff = CC_MAPPED_VALUE - OLD_CC_VAL;
-    // if (diff > 0 && diff < THRESHOLD)
-    // {
-    //     CC_CONTROL_VALUE = CC_CONTROL_VALUE + diff;
-    //     limitCC();
-    // }
-    // else if (diff < 0 && diff < THRESHOLD)
-    // {
-    //     CC_CONTROL_VALUE = CC_CONTROL_VALUE - diff;
-    //     limitCC();
-    // }
+    CC_CONTROL_VALUE = ceil(map(secs, US_MIN, US_MAX, CC_OFF, CC_SUPER));
+    limitCC();
 
-    MIDI.sendControlChange(CC_CONTROL_NUMBER, CC_MAPPED_VALUE, CC_CHANNEL);
+    MIDI.sendControlChange(CC_CONTROL_NUMBER, CC_CONTROL_VALUE, CC_CHANNEL);
     OLD_CC_VAL = CC_CONTROL_VALUE;
     delay(LOOP_DELAY);
 }
