@@ -42,9 +42,11 @@ void loop()
     long secs = pingSensor();
     CC_CONTROL_VALUE = ceil(map(secs, US_MIN, US_MAX, CC_OFF, CC_SUPER));
     limitCC();
-
-    MIDI.sendControlChange(CC_CONTROL_NUMBER, CC_CONTROL_VALUE, CC_CHANNEL);
-    OLD_CC_VAL = CC_CONTROL_VALUE;
+    if (CC_CONTROL_VALUE != OLD_CC_VAL)
+    {
+        MIDI.sendControlChange(CC_CONTROL_NUMBER, CC_CONTROL_VALUE, CC_CHANNEL);
+        OLD_CC_VAL = CC_CONTROL_VALUE;
+    }
     delay(LOOP_DELAY);
 }
 
