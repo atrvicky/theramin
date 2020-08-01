@@ -7,7 +7,7 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 const int PING_PIN = 7; // Trigger Pin of Ultrasonic Sensor
 const int ECHO_PIN = 6; // Echo Pin of Ultrasonic Sensor
 
-// the minimum distance to be sensed by the Ultrasonic Sensor
+// the minimum distance to be sensed by the Ultrasonic Sensor (min 200, max 500)
 const int US_MIN = 200;
 // the maximum distance to be sensed by the Ultrasonic Sensor
 const int US_MAX = 2700;
@@ -26,6 +26,7 @@ const int CC_SUPER = 127;
 const int THRESHOLD = 25;
 
 // the button that controls the input (pulled down with a 1K resistor)
+// (5V -> Button terminal one; Button two terminal -> 1K resistor -> Gnd; Pin 10 -> between button & resistor)
 const int BUTTON_PIN = 10;
 
 // the test led at 13
@@ -63,6 +64,7 @@ void loop()
     {
         if (abs(CC_CONTROL_VALUE - OLD_CC_VAL) < THRESHOLD)
         {
+            // smoothen the tracking
             if (OLD_CC_VAL < CC_CONTROL_VALUE)
             {
                 for (int i = OLD_CC_VAL; i <= CC_CONTROL_VALUE; i++)
