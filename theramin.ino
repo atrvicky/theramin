@@ -22,11 +22,11 @@ const int CC_OFF = 0;
 const int CC_ON = 65;
 const int CC_SUPER = 127;
 
-// a variable to maintain threshold (min 10)
+// a variable to maintain threshold (min 10). The greater the threshold, the sensitive it is at the cost of Ceiling and flooring near the endpoint.
 const int THRESHOLD = 35;
 
 // a variable to control smoothing
-const int SMOOTH_FACTOR = 6;
+const int SMOOTH_FACTOR = 0;
 
 // the button that controls the input (pulled down with a 1K resistor)
 // (5V -> Button terminal one; Button two terminal -> 1K resistor -> Gnd; Pin 10 -> between button & resistor)
@@ -39,6 +39,7 @@ int CC_MAPPED_VALUE = 0;
 int CC_CONTROL_VALUE = 0;
 int OLD_CC_VAL = 0;
 
+// sense the hand to provide a seamless output even when there is a difference bigger than the threshold
 int HAND_SENSED = 0;
 
 void setup()
