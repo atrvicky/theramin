@@ -23,7 +23,10 @@ const int CC_ON = 65;
 const int CC_SUPER = 127;
 
 // a variable to maintain threshold (min 10)
-const int THRESHOLD = 25;
+const int THRESHOLD = 35;
+
+// a variable to control smoothing
+const int SMOOTH_FACTOR = 6;
 
 // the button that controls the input (pulled down with a 1K resistor)
 // (5V -> Button terminal one; Button two terminal -> 1K resistor -> Gnd; Pin 10 -> between button & resistor)
@@ -35,6 +38,8 @@ const int TEST_LED = 11;
 int CC_MAPPED_VALUE = 0;
 int CC_CONTROL_VALUE = 0;
 int OLD_CC_VAL = 0;
+
+int HAND_SENSED = 0;
 
 void setup()
 {
@@ -51,45 +56,41 @@ void loop()
     int buttonState = digitalRead(BUTTON_PIN);
     digitalWrite(TEST_LED, buttonState);
 
-    long secs = pingSensor();
-    CC_CONTROL_VALUE = ceil(map(secs, US_MIN, US_MAX, CC_OFF, CC_SUPER));
-    limitCC();
+    readSensor();
 
     if (buttonState == HIGH)
     {
         OLD_CC_VAL = 0;
         CC_CONTROL_VALUE = 1;
     }
-    if (CC_CONTROL_VALUE != OLD_CC_VAL)
+
+    if (HAND_SENSED == 1 || abs(CC_CONTROL_VALUE - OLD_CC_VAL) < THRESHOLD)
     {
-        if (abs(CC_CONTROL_VALUE - OLD_CC_VAL) < THRESHOLD)
+        // smoothen the tracking
+        if (OLD_CC_VAL < CC_CONTROL_VALUE)
         {
-            // smoothen the tracking
-            if (OLD_CC_VAL < CC_CONTROL_VALUE)
+            for (int i = OLD_CC_VAL; i <= CC_CONTROL_VALUE; i++)
             {
-                for (int i = OLD_CC_VAL; i <= CC_CONTROL_VALUE; i++)
-                {
-                    MIDI.sendControlChange(CC_CONTROL_NUMBER, i, CC_CHANNEL);
-                    delay(5);
-                }
+                MIDI.sendControlChange(CC_CONTROL_NUMBER, i, CC_CHANNEL);
+                delay(SMOOTH_FACTOR);
             }
-            else
-            {
-                for (int i = OLD_CC_VAL; i >= CC_CONTROL_VALUE; i--)
-                {
-                    MIDI.sendControlChange(CC_CONTROL_NUMBER, i, CC_CHANNEL);
-                    delay(5);
-                }
-            }
-            OLD_CC_VAL = CC_CONTROL_VALUE;
         }
+        else
+        {
+            for (int i = OLD_CC_VAL; i >= CC_CONTROL_VALUE; i--)
+            {
+                MIDI.sendControlChange(CC_CONTROL_NUMBER, i, CC_CHANNEL);
+                delay(SMOOTH_FACTOR);
+            }
+        }
+        OLD_CC_VAL = CC_CONTROL_VALUE;
     }
     delay(LOOP_DELAY);
 }
 
 int limitCC()
 {
-    // limit the range
+    // limit the range only if hand sensed
     if (CC_CONTROL_VALUE < CC_OFF)
     {
         CC_CONTROL_VALUE = CC_OFF;
@@ -100,12 +101,25 @@ int limitCC()
     }
 }
 
+void readSensor()
+{
+    long secs = pingSensor();
+    CC_CONTROL_VALUE = ceil(map(secs, US_MIN, US_MAX, CC_OFF, CC_SUPER));
+
+    if (CC_CONTROL_VALUE >= CC_OFF && CC_CONTROL_VALUE <= CC_SUPER)
+    {
+        HAND_SENSED = 1;
+    } else {
+        HAND_SENSED = 0;
+    }
+    limitCC();
+}
+
 long pingSensor()
 {
     long duration, cm;
     pinMode(PING_PIN, OUTPUT);
     digitalWrite(PING_PIN, LOW);
-    delayMicroseconds(2);
     digitalWrite(PING_PIN, HIGH);
     delayMicroseconds(10);
     digitalWrite(PING_PIN, LOW);
